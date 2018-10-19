@@ -114,7 +114,6 @@ const spec = {
           in: 'path',
           name: 'id',
           required: true,
-          type: 'integer',
           schema: {
             type: 'integer'
           }

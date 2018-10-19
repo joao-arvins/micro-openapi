@@ -18,7 +18,7 @@ export function validate(handler) {
     const errors = validator.validate({
       body: {},
       params: param(req),
-      query: {}
+      query: (new URL(req.url, 'http://example.org')).query
     });
 
     if (errors) {
@@ -89,7 +89,10 @@ function handle(def) {
   const { operationId, parameters } = def;
   return (req, res) => {
     req[validatorKey] = new RequestValidator({
-      parameters: parameters || []
+      parameters: (parameters || []).map(param => ({
+        ...param,
+        ...param.schema // workaround for OpenAPI v3 - inline schema
+      }))
     });
 
     return operationId(req, res);

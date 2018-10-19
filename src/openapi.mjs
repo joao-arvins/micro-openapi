@@ -1,4 +1,10 @@
-import tree from 'micro-tree';
+import tree, { param } from 'micro-tree';
+import OpenAPIRequestValidator from 'openapi-request-validator';
+import micro from 'micro';
+
+const RequestValidator = OpenAPIRequestValidator.default;
+const { send } = micro;
+const validatorKey = Symbol('micro-openapi validator');
 
 export default function openapi(spec) {
   const routes = parse(spec);
@@ -8,19 +14,48 @@ export default function openapi(spec) {
 
 export function validate(handler) {
   return (req, res) => {
+    const validator = req[validatorKey];
+    const errors = validator.validate({
+      body: {},
+      params: param(req),
+      query: {}
+    });
 
+    if (errors) {
+      throw new ValidationError(errors);
+    }
+
+    return handler(req, res);
+  };
+}
+
+
+export function handleErrors(handler) {
+  return (req, res) => {
+    try {
+      return handler(req, res);
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        return send(res, error.statusCode, error.detail);
+      }
+      throw error;
+    }
   };
 }
 
 
 export { param } from 'micro-tree';
 
+export class ValidationError extends Error {
+  constructor(errors) {
+    super('Validation Error');
+    this.statusCode = errors.status;
+    this.detail = errors.errors;
+  }
+}
+
 
 function parse(spec) {
-  if (!spec.openapi) {
-    throw new Error('Must be an OpenAPI spec');
-  }
-
   // TODO: Validate spec
 
   const { paths } = spec;
@@ -29,12 +64,13 @@ function parse(spec) {
     const node = getNode(routes, path);
 
     Object.keys(paths[path]).forEach((verb) => {
-      node[verb.toUpperCase()] = paths[path][verb].operationId;
+      node[verb.toUpperCase()] = handle(paths[path][verb]);
     });
 
     return routes;
   }, {});
 }
+
 
 function getNode(routes, path) {
   const parts = path.split('/').filter(part => part !== '');
@@ -46,4 +82,16 @@ function getNode(routes, path) {
   });
 
   return node;
+}
+
+
+function handle(def) {
+  const { operationId, parameters } = def;
+  return (req, res) => {
+    req[validatorKey] = new RequestValidator({
+      parameters: parameters || []
+    });
+
+    return operationId(req, res);
+  };
 }

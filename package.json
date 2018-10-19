@@ -1,0 +1,46 @@
+{
+  "name": "micro-openapi",
+  "version": "0.0.0",
+  "description": "OpenAPI spec defined router/validation for micro based micro-services",
+  "scripts": {
+    "build": "mkdir -p dist && babel src/openapi.mjs -o dist/openapi.js",
+    "lint": "eslint src/**/*.mjs test/**/*.mjs",
+    "test:unit": "nyc --extension .mjs --check-coverage --lines 95 --functions 95 --branches 95 ava test/openapi.test.mjs",
+    "test": "npm run lint && npm run test:unit && npm run build"
+  },
+  "keywords": [
+    "micro",
+    "openapi",
+    "router",
+    "validation"
+  ],
+  "author": {
+    "name": "David Beale",
+    "url": "http://bealearts.co.uk/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@github.com:BealeARTS/micro-openapi.git"
+  },
+  "peerDependencies": {
+    "micro": "^9.3.3"
+  },
+  "devDependencies": {
+    "ava": "^1.0.0-beta.8",
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.3",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "eslint": "^5.6.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.14.0",
+    "esm": "^3.0.82",
+    "micro": "^9.3.3",
+    "node-fetch": "^2.2.0",
+    "nyc": "^13.0.1",
+    "test-listen": "^1.1.0"
+  },
+  "dependencies": {
+    "micro-tree": "^1.1.0"
+  }
+}

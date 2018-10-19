@@ -19,10 +19,20 @@ test.afterEach.always(() => {
 
 
 test('basic url', async (t) => {
-  const response = await fetch(`${url}/v1/resource/42`);
+  const response = await fetch(`${url}/status`);
   const body = await response.text();
 
   t.is(body, 'OK');
+});
+
+
+test('url with int param', async (t) => {
+  const response = await fetch(`${url}/resources/4`);
+  const body = await response.json();
+
+  t.deepEqual(body, {
+    id: 4
+  });
 });
 
 
@@ -36,10 +46,23 @@ const spec = {
     }
   },
   paths: {
-    '/resource/{id}': {
+    '/status': {
+      get: {
+        description: 'API Status',
+        operationId: () => 'OK',
+        responses: {
+          200: {
+            description: 'Ok'
+          }
+        }
+      }
+    },
+    '/resources/{id}': {
       get: {
         description: 'Get a Resource by Id',
-        operationId: () => ({}),
+        operationId: req => ({
+          id: param(req, 'id')
+        }),
         parameters: [{
           in: 'path',
           name: 'id',

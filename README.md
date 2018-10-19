@@ -20,7 +20,7 @@ export openapi({
     }
   },
   paths: {
-    '/resource/{id}': {
+    '/resources/{id}': {
       get: {
         description: 'Get a Resource by Id',
         operationId: getResource,

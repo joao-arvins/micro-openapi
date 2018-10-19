@@ -28,11 +28,9 @@ function parse(spec) {
   return Object.keys(paths).reduce((routes, path) => {
     const node = getNode(routes, path);
 
-    // const resource = def[path]['x-resource'];
-
-    // Object.keys(def[path]).filter(isVerb).forEach((verb) => {
-    //   node[`$${verb}`] = handle(resource, verb);
-    // });
+    Object.keys(paths[path]).forEach((verb) => {
+      node[verb.toUpperCase()] = paths[path][verb].operationId;
+    });
 
     return routes;
   }, {});
@@ -42,8 +40,9 @@ function getNode(routes, path) {
   const parts = path.split('/').filter(part => part !== '');
   let node = routes;
   parts.forEach((part) => {
-    node[part] = node[part] || {};
-    node = node[part];
+    const formattedPart = part.replace('{', ':').replace('}', '');
+    node[formattedPart] = node[formattedPart] || {};
+    node = node[formattedPart];
   });
 
   return node;

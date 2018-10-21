@@ -83,7 +83,7 @@ const spec = {
     '/status': {
       get: {
         description: 'API Status',
-        operationId: () => 'OK',
+        operation: () => 'OK',
         responses: {
           200: {
             description: 'Ok'
@@ -94,7 +94,7 @@ const spec = {
     '/error': {
       get: {
         description: 'Throw an Error',
-        operationId: () => {
+        operation: () => {
           throw new Error('Not Ok');
         },
         responses: {
@@ -107,7 +107,7 @@ const spec = {
     '/resources/{id}': {
       get: {
         description: 'Get a Resource by Id',
-        operationId: validate(req => ({
+        operation: validate(req => ({
           id: param(req, 'id')
         })),
         parameters: [{

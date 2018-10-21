@@ -86,7 +86,7 @@ function getNode(routes, path) {
 
 
 function handle(def) {
-  const { operationId, parameters } = def;
+  const { operation, parameters } = def;
   return (req, res) => {
     req[validatorKey] = new RequestValidator({
       parameters: (parameters || []).map(param => ({
@@ -95,6 +95,6 @@ function handle(def) {
       }))
     });
 
-    return operationId(req, res);
+    return operation(req, res);
   };
 }

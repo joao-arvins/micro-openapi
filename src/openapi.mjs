@@ -5,10 +5,15 @@ import micro from 'micro';
 const RequestValidator = OpenAPIRequestValidator.default;
 const { send } = micro;
 const validatorKey = Symbol('micro-openapi validator');
+const specKey = Symbol('micro-openapi specKey');
 
 export default function openapi(spec) {
   const routes = parse(spec);
-  return tree(routes);
+  const router = tree(routes);
+  return (req, res) => {
+    req[specKey] = cleanSpec(spec);
+    return router(req, res);
+  };
 }
 
 
@@ -45,6 +50,12 @@ export function handleErrors(handler) {
 
 
 export { param } from 'micro-tree';
+
+
+export function specification(req) {
+  return req[specKey];
+}
+
 
 export class ValidationError extends Error {
   constructor(errors) {
@@ -97,4 +108,9 @@ function handle(def) {
 
     return operation(req, res);
   };
+}
+
+
+function cleanSpec(spec) {
+  return JSON.parse(JSON.stringify(spec));
 }

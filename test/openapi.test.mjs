@@ -3,7 +3,9 @@ import test from 'ava';
 import listen from 'test-listen';
 import fetch from 'node-fetch';
 
-import openapi, { validate, param, handleErrors } from '../src/openapi';
+import openapi, {
+  validate, param, handleErrors, specification
+} from '../src/openapi';
 
 let service;
 let url;
@@ -24,6 +26,15 @@ test('basic url', async (t) => {
 
   t.is(response.status, 200);
   t.is(body, 'OK');
+});
+
+
+test('spec json', async (t) => {
+  const response = await fetch(`${url}/openapi.json`);
+  const body = await response.json();
+
+  t.is(response.status, 200);
+  t.deepEqual(body, JSON.parse(JSON.stringify(spec)));
 });
 
 
@@ -80,6 +91,12 @@ const spec = {
     }
   },
   paths: {
+    'openapi.json': {
+      get: {
+        description: 'OpenAPI Spec',
+        operation: req => specification(req)
+      }
+    },
     '/status': {
       get: {
         description: 'API Status',

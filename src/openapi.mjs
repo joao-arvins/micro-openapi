@@ -7,9 +7,9 @@ const { send } = micro;
 const validatorKey = Symbol('micro-openapi validator');
 const specKey = Symbol('micro-openapi specKey');
 
-export default function openapi(spec) {
+export default function openapi(spec, notFound) {
   const routes = parse(spec);
-  const router = tree(routes);
+  const router = tree(routes, notFound);
   return (req, res) => {
     req[specKey] = cleanSpec(spec);
     return router(req, res);

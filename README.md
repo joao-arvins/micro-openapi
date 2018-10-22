@@ -4,7 +4,7 @@
 
 ## Usage
 ```js
-import openapi, { validate, param, spec } from 'micro-openapi';
+import openapi, { validate, param, specification } from 'micro-openapi';
 
 const getResource = validate((req, res) => ({
   id: param(req, 'id')
@@ -23,7 +23,7 @@ export openapi({
     'openapi.json': {
       get: {
         description: 'OpenAPI Specification',
-        operation: req => spec(req))
+        operation: req => specification(req))
       }
     },
     '/resources/{id}': {

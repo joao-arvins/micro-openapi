@@ -52,7 +52,17 @@ export function handleErrors(handler) {
 export { param } from 'micro-tree';
 
 
-export function specification(req) {
+export function specification(req, opts = {}) {
+  const { exclude } = opts;
+
+  if (exclude && Array.isArray(exclude)) {
+    const { paths, ...others } = req[specKey];
+    return {
+      ...others,
+      paths: filter(paths, exclude)
+    };
+  }
+
   return req[specKey];
 }
 
@@ -113,4 +123,15 @@ function handle(def) {
 
 function cleanSpec(spec) {
   return JSON.parse(JSON.stringify(spec));
+}
+
+
+function filter(paths, exclude) {
+  return Object.keys(paths).reduce((acc, key) => {
+    if (exclude.includes(key)) {
+      return acc;
+    }
+    acc[key] = paths[key];
+    return acc;
+  }, {});
 }

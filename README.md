@@ -20,10 +20,14 @@ export openapi({
     }
   },
   paths: {
-    'openapi.json': {
+    '/openapi.json': {
       get: {
         description: 'OpenAPI Specification',
-        operation: req => specification(req))
+        operation: req => specification(req, {
+          exclude: [
+            '/openapi.json'
+          ]
+        }))
       }
     },
     '/resources/{id}': {

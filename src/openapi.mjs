@@ -3,7 +3,7 @@ import OpenAPIRequestValidator from 'openapi-request-validator';
 import micro from 'micro';
 
 const RequestValidator = OpenAPIRequestValidator.default;
-const { send } = micro;
+const { send, text } = micro;
 const validatorKey = Symbol('micro-openapi validator');
 const specKey = Symbol('micro-openapi specKey');
 
@@ -18,10 +18,17 @@ export default function openapi(spec, notFound) {
 
 
 export function validate(handler) {
-  return (req, res) => {
+  return async (req, res) => {
     const validator = req[validatorKey];
+    const content = await text(req);
+    let body = {};
+
+    if (content) {
+      body = JSON.parse(content);
+    }
+
     const errors = validator.validate({
-      body: {},
+      body,
       params: param(req),
       query: (new URL(req.url, 'http://example.org')).query
     });
@@ -36,9 +43,9 @@ export function validate(handler) {
 
 
 export function handleErrors(handler) {
-  return (req, res) => {
+  return async (req, res) => {
     try {
-      return handler(req, res);
+      return await handler(req, res);
     } catch (error) {
       if (error instanceof ValidationError) {
         return send(res, error.statusCode, error.detail);
@@ -69,7 +76,7 @@ export function specification(req, opts = {}) {
 
 export class ValidationError extends Error {
   constructor(errors) {
-    super('Validation Error');
+    super(`Validation Error - ${JSON.stringify(errors.errors)}`);
     this.statusCode = errors.status;
     this.detail = errors.errors;
   }
@@ -107,13 +114,23 @@ function getNode(routes, path) {
 
 
 function handle(def) {
-  const { operation, parameters } = def;
+  const { operation, parameters, requestBody } = def;
   return (req, res) => {
+    const params = (parameters || []).map(param => ({
+      ...param,
+      ...param.schema // workaround for OpenAPI v3 - inline schema
+    }));
+
+    // workaround for OpenAPI v3 - requestBody
+    if (requestBody) {
+      params.push({
+        in: 'body',
+        schema: toJsonSchema(requestBody.content['application/json'].schema)
+      });
+    }
+
     req[validatorKey] = new RequestValidator({
-      parameters: (parameters || []).map(param => ({
-        ...param,
-        ...param.schema // workaround for OpenAPI v3 - inline schema
-      }))
+      parameters: params
     });
 
     return operation(req, res);
@@ -134,4 +151,21 @@ function filter(paths, exclude) {
     acc[key] = paths[key];
     return acc;
   }, {});
+}
+
+
+function toJsonSchema(schema) {
+  if (schema.type === 'object') {
+    const { properties } = schema;
+    return {
+      properties: Object.keys(properties).reduce((acc, prop) => {
+        acc[prop] = toJsonSchema(properties[prop]);
+        return acc;
+      }, {}),
+      required: Object.keys(properties).filter(prop => properties[prop].required)
+    };
+  }
+
+  const { required, ...result } = schema;
+  return result;
 }

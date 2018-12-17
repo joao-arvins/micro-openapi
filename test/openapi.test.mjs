@@ -7,6 +7,8 @@ import openapi, {
   validate, param, handleErrors, specification
 } from '../src/openapi';
 
+const { json, send } = micro;
+
 let service;
 let url;
 
@@ -81,6 +83,29 @@ test('url with non-validation error', async (t) => {
 });
 
 
+test('url with body', async (t) => {
+  const response = await fetch(`${url}/resources`, {
+    method: 'POST',
+    body: JSON.stringify({
+      content: 'Testing',
+      detail: {
+        level: 15
+      }
+    })
+  });
+  const body = await response.json();
+
+  t.is(response.status, 201);
+  t.deepEqual(body, {
+    id: 123,
+    content: 'Testing',
+    detail: {
+      level: 15
+    }
+  });
+});
+
+
 const spec = {
   openapi: '3.0.0',
   info: {
@@ -117,6 +142,52 @@ const spec = {
         responses: {
           500: {
             description: 'Not Ok'
+          }
+        }
+      }
+    },
+    '/resources': {
+      post: {
+        description: 'Create a Resource',
+        operation: validate(async (req, res) => {
+          const body = await json(req);
+          send(res, 201, {
+            id: 123,
+            ...body
+          });
+        }),
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: true,
+                properties: {
+                  content: {
+                    type: 'string',
+                    required: true,
+                    minLength: 5
+                  },
+                  detail: {
+                    type: 'object',
+                    required: true,
+                    properties: {
+                      level: {
+                        type: 'integer',
+                        require: true,
+                        minimum: 10
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          201: {
+            description: 'Created'
           }
         }
       }

@@ -1,6 +1,6 @@
 {
   "name": "micro-openapi",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "OpenAPI spec defined router/validation for micro based micro-services",
   "scripts": {
     "build": "mkdir -p dist && babel src/openapi.mjs -o dist/openapi.js",

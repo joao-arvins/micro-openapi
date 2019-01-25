@@ -90,7 +90,12 @@ test('url with body', async (t) => {
       content: 'Testing',
       detail: {
         level: 15
-      }
+      },
+      options: [
+        {
+          id: 4
+        }
+      ]
     })
   });
   const body = await response.json();
@@ -101,7 +106,12 @@ test('url with body', async (t) => {
     content: 'Testing',
     detail: {
       level: 15
-    }
+    },
+    options: [
+      {
+        id: 4
+      }
+    ]
   });
 });
 
@@ -177,6 +187,19 @@ const spec = {
                         type: 'integer',
                         require: true,
                         minimum: 10
+                      }
+                    }
+                  },
+                  options: {
+                    type: 'array',
+                    required: true,
+                    items: {
+                      type: 'object',
+                      properties: {
+                        id: {
+                          type: 'integer',
+                          required: true
+                        }
                       }
                     }
                   }

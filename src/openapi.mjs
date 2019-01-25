@@ -156,13 +156,22 @@ function filter(paths, exclude) {
 
 function toJsonSchema(schema) {
   if (schema.type === 'object') {
-    const { properties } = schema;
+    const { required, properties, ...def } = schema;
     return {
+      ...def,
       properties: Object.keys(properties).reduce((acc, prop) => {
         acc[prop] = toJsonSchema(properties[prop]);
         return acc;
       }, {}),
       required: Object.keys(properties).filter(prop => properties[prop].required)
+    };
+  }
+
+  if (schema.type === 'array') {
+    const { required, items, ...def } = schema;
+    return {
+      ...def,
+      items: toJsonSchema(items)
     };
   }
 

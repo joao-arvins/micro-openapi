@@ -123,9 +123,10 @@ function handle(def) {
 
     // workaround for OpenAPI v3 - requestBody
     if (requestBody) {
+      const contentType = Object.keys(requestBody.content)[0];
       params.push({
         in: 'body',
-        schema: toJsonSchema(requestBody.content['application/json'].schema)
+        schema: toJsonSchema(requestBody.content[contentType].schema)
       });
     }
 
